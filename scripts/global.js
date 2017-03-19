@@ -24,7 +24,7 @@ function addClass(elem,value){
 		elem.className = value;
 	}else{
 		newClassName = elem.className;
-		newClassName += " ";						 
+		newClassName += " ";
 		elem.className += newClassName;
 	}
 }
@@ -80,7 +80,7 @@ function moveElement(elementID,final_x,final_y,interval){
 		ypos -= dist;
 	}
 	elem.style.left = xpos + "px";
-	elem.style.top = ypos +　"px";
+	elem.style.top = ypos + "px";
 	var repeat = "moveElement('"+elementID+"',"+final_x+","+final_y+","+interval+")";
 	elem.movement = setTimeout(repeat,interval);
 }
@@ -91,6 +91,13 @@ function prepareSlideshow(){
 	var intro = document.getElementById("intro");
 	var slideshow = document.createElement("div");
 	slideshow.setAttribute("id","slideshow");
+		
+	var frameX = document.createElement("img");
+	frameX.setAttribute("src","images/frame.gif");
+	frameX.setAttribute("alt","");
+	frameX.setAttribute("id","frame");
+	slideshow.appendChild(frameX);
+	
 	var preview = document.createElement("img");
 	preview.setAttribute("src","images/slideshow.gif");
 	preview.setAttribute("alt","a glimpse of what awaits you");
@@ -121,12 +128,6 @@ function prepareSlideshow(){
 			}
 		}
 	}
-	
-	var frameX = document.createElement("img");
-	frameX.setAttribute("src","images/frame.gif");
-	frameX.setAttribute("alt","");
-	frameX.setAttribute("id","frame");
-	slideshow.appendChild(frameX);
 }
 
 function showSection(id){
@@ -238,7 +239,7 @@ function highlightRows(){
 	}
 }
 function displayAbbreviations(){
-	if(!document.getElementsByTagName||!document.getElementById||!document.createTextNode)return false;
+	if(!document.getElementsByTagName||!document.createElement||!document.createTextNode)return false;
 	var abbreviations = document.getElementsByTagName("abbr");
 	if(abbreviations.length < 1) return false;
 	var defs = new Array();
@@ -309,12 +310,109 @@ function resetFields(whichform){
 		elem.onblur();
 	}
 }
+function validateForm(whichform){
+	for(var i=0; i<whichform.elements.length; i++){
+		var elem = whichform.elements[i];
+		if(elem.required == 'required'){
+			if(!isFilled(elem)){
+				alert("Please fill in the"+elem.name+" field.");
+				return false;
+			}
+		}
+		if(elem.type == 'email'){
+			if(!isEmail(elem)){
+				alert("The "+elem.name+" field must be a valid email address.");
+				return false;
+			}
+		}
+	}
+	return true;
+}
+function isFilled(field){
+	if(field.value.replace(' ','').length == 0)return false;
+	var placeholder = field.placeholder || field.getAttribute("placeholder");
+	return(field.value != placeholder);
+}
+function isEmail(field){
+	return(field.value.indexOf("@") != -1 && field.value.indexOf(".") != -1);
+}
 function prepareForms(){
 	for(var i=0; i<document.forms.length; i++){
 		var thisform = document.forms[i];
-		resetFields(thisform);
+		// resetFields(thisform);
+		thisform.onsubmit = function(){
+			// alert("sub");
+			if(!validateForm(this))return false;
+			var article = document.getElementsByTagName('article')[0];
+			if(submitFormWithAjax(this,article)) return false;
+			return true;
+		}
 	}
 }
+
+function getHTTPObject(){
+	if(typeof XMLHttpRequest == "undefined")
+		XMLHttpRequest = function(){
+			try{
+				return new ActiveXObject("Msxml2.XMLHTTP.6.0");
+			}catch(e){}
+			try{
+				return new ActiveXObject("Msxml2.XMLHTTP.3.0");
+			}catch(e){}
+			try{
+				return new ActiveXObject("Msxml2.XMLHTTP");
+			}catch(e){}
+			return false;
+	}
+	return new XMLHttpRequest();
+}
+function displayAjaxLoading(elem){
+	while(elem.hasChildNodes()){
+		elem.removeChild(elem.lastChild);
+	}
+	var content = document.createElement("img");
+	content.setAttribute("src","images/loading.gif");
+	content.setAttribute("alt","Loading...");
+	elem.appendChild(content);
+}
+function submitFormWithAjax(whichform, thetarget){
+	var request = getHTTPObject();
+	if(!request){return false;}
+	displayAjaxLoading(thetarget);
+	
+	var dataParts = [];
+	var elem;
+	for(var i=0; i<whichform.elements.length; i++){
+		elem = whichform.elements[i];
+		dataParts[i] = elem.name + '=' + encodeURIComponent(elem.value);
+	}
+	
+	var data = dataParts.join('&');
+	
+	request.open('POST',whichform.getAttribute("action"),true);
+	
+	request.setRequestHeader("Content-type","application/x-www-form-urlencoded");
+	
+	request.onreadystatechange = function(){
+		if(request.readyState == 4){
+			if(request.status == 200 || request.status == 0){
+				var matches = request.responseText.match(/<article>([\s\S]+)<\/article>/);
+				if(matches.length > 0){
+					thetarget.innerHTML = matches[1];
+				}else{
+					thetarget.innerHTML = '<p>0ops,there was an error. Sorry.</p>';
+				}
+			}else{
+				thetarget.innerHTML = '<p>' + request.statusText + '</p>';
+			}
+		}
+	};
+	
+	request.send(data);
+	return true;
+}
+
+
 addLoadEvent(prepareForms);
 addLoadEvent(focusLabels);
 

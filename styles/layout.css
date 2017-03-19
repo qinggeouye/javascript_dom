@@ -16,13 +16,13 @@ body{
 header{
 	background-image: url(../images/guitarist.gif);
 	background-repeat: no-repeat;
-	background-position: top right;
+	background-position: bottom right;
 	border-width: .1em;
 	border-style: solid;
 	border-bottom-width: 0;
 }
 header nav{
-	background-image: url(../images/navbar.gif);
+	background-image: url(../images/header navbar.gif);
 	background-position: bottom left;
 	background-repeat: repeat-x;
 	border-width: .1em;
@@ -98,14 +98,7 @@ article img{
 td{
 	padding: .5em 3em;
 }
-th{
-	color: #edc;
-	background-color: #455;
-}
-tr td{
-	color: #233;
-	background-color: #eb6;
-}
+
 
 dl{
 	overflow: hidden;

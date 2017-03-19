@@ -272,6 +272,52 @@ function displayAbbreviations(){
 	container.appendChild(dlist);
 }
 
+
+function focusLabels(){
+	if(!document.getElementsByTagName)return false;
+	var labels = document.getElementsByTagName("label");
+	for(var i=0; i<labels.length; i++){
+		if(!labels[i].getAttribute("for"))continue;
+		labels[i].onclick = function(){
+			var id = this.getAttribute("for");
+			if(!document.getElementById(id)) return false;
+			var elem = document.getElementById(id);
+			elem.focus();
+		}
+	}
+}
+function resetFields(whichform){
+	// if(Modernizr.input.placeholder)return;
+	for(var i=0; i<whichform.elements.length; i++){
+		var elem = whichform.elements[i];
+		if(elem.type == "submit")continue;
+		var check = elem.placeholder || elem.getAttribute('placeholder');
+		if(!check)continue;
+		elem.onfocus = function(){
+			var texts = this.placeholder || this.getAttribute('placeholder');
+			if(this.value == texts){
+				this.className = '';
+				this.value = "";
+			}
+		}
+		elem.onblur = function(){
+			if(this.value == ""){
+				this.className = 'placeholder';
+				this.value = this.placeholder || this.getAttribute('placeholder');
+			}
+		}
+		elem.onblur();
+	}
+}
+function prepareForms(){
+	for(var i=0; i<document.forms.length; i++){
+		var thisform = document.forms[i];
+		resetFields(thisform);
+	}
+}
+addLoadEvent(prepareForms);
+addLoadEvent(focusLabels);
+
 addLoadEvent(stripeTables);
 addLoadEvent(highlightRows);
 addLoadEvent(displayAbbreviations);
